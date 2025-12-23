@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopee Login Bot - Vercel</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.12.0/toastify.min.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛒</text></svg>">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading" class="loading-screen">
+        <div class="loader">
+            <div class="spinner"></div>
+            <p>Memulai Shopee Bot...</p>
+        </div>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <div class="logo">
+            <i class="fas fa-shopping-bag"></i>
+            <span>Shopee Bot</span>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item active" data-page="home">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </li>
+            <li class="nav-item" data-page="qr-login">
+                <i class="fas fa-qrcode"></i>
+                <span>QR Login</span>
+            </li>
+            <li class="nav-item" data-page="check-account">
+                <i class="fas fa-user-check"></i>
+                <span>Cek Akun</span>
+            </li>
+            <li class="nav-item" data-page="cookies">
+                <i class="fas fa-cookie-bite"></i>
+                <span>Cookies</span>
+            </li>
+            <li class="nav-item" data-page="help">
+                <i class="fas fa-question-circle"></i>
+                <span>Bantuan</span>
+            </li>
+        </ul>
+        <div class="user-info">
+            <div class="user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="user-details">
+                <span class="user-name">Guest</span>
+                <span class="user-status"><i class="fas fa-circle status-online"></i> Online</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Home Page -->
+        <section id="home" class="page active">
+            <header class="page-header">
+                <h1><i class="fas fa-tachometer-alt"></i> Dashboard</h1>
+                <div class="header-actions">
+                    <button id="new-session" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Session Baru
+                    </button>
+                </div>
+            </header>
+
+            <div class="stats-grid">
+                <div class
