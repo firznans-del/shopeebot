@@ -1,6 +1,3 @@
-// Update API base URL untuk Vercel
-const API_BASE_URL = window.location.origin;
-
 class ShopeeBot {
     constructor() {
         this.sessionId = this.generateSessionId();
@@ -17,19 +14,7 @@ class ShopeeBot {
         return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     }
 
-    async init() {
-        // Cek koneksi API terlebih dahulu
-        try {
-            const healthResponse = await fetch(`${API_BASE_URL}/api/health`);
-            const healthData = await healthResponse.json();
-            
-            if (healthData.status === 'healthy') {
-                console.log('✅ API Connected:', API_BASE_URL);
-            }
-        } catch (error) {
-            console.warn('⚠️ API health check failed:', error.message);
-        }
-
+    init() {
         // Hide loading screen after 1.5 seconds
         setTimeout(() => {
             document.getElementById('loading').style.display = 'none';
@@ -68,7 +53,7 @@ class ShopeeBot {
 
     async loadSession() {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/session?sessionId=${this.sessionId}`);
+            const response = await fetch(`/api/session/${this.sessionId}`);
             const data = await response.json();
             
             if (data.success) {
@@ -223,7 +208,7 @@ class ShopeeBot {
             this.updateQrSteps(1);
             this.updateUI();
             
-            const response = await fetch(`${API_BASE_URL}/api/generate-qr`, {
+            const response = await fetch('/api/generate-qr', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ sessionId: this.sessionId })
@@ -284,7 +269,7 @@ class ShopeeBot {
             if (!this.isScanning) return;
 
             try {
-                const response = await fetch(`${API_BASE_URL}/api/check-qr`, {
+                const response = await fetch('/api/check-qr', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ qrcodeId, sessionId: this.sessionId })
@@ -321,7 +306,7 @@ class ShopeeBot {
         try {
             this.updateQrSteps(4);
             
-            const response = await fetch(`${API_BASE_URL}/api/login-qr`, {
+            const response = await fetch('/api/login-qr', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
@@ -341,8 +326,7 @@ class ShopeeBot {
                 this.currentSession = {
                     ...this.currentSession,
                     cookies: data.rawCookies,
-                    coloredCookies: data.coloredCookies,
-                    bashCookies: data.bashCookies
+                    coloredCookies: data.coloredCookies
                 };
                 
                 this.updateUI();
@@ -362,7 +346,7 @@ class ShopeeBot {
 
     async checkAccountFromCookies(cookies) {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/check-account`, {
+            const response = await fetch('/api/check-account', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
@@ -399,7 +383,7 @@ class ShopeeBot {
 
         try {
             // Parse cookies string
-            const parseResponse = await fetch(`${API_BASE_URL}/api/parse-cookies`, {
+            const parseResponse = await fetch('/api/parse-cookies', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ cookieString: cookieInput })
@@ -421,7 +405,7 @@ class ShopeeBot {
             // Check account
             this.showToast('Mengecek status akun...', 'info');
             
-            const checkResponse = await fetch(`${API_BASE_URL}/api/check-account`, {
+            const checkResponse = await fetch('/api/check-account', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
@@ -439,7 +423,6 @@ class ShopeeBot {
                     ...this.currentSession,
                     cookies: parseData.cookies,
                     coloredCookies: checkData.coloredCookies,
-                    bashCookies: checkData.bashCookies,
                     accountInfo: {
                         profile: checkData.profile,
                         account: checkData.account
@@ -693,8 +676,7 @@ class ShopeeBot {
             return;
         }
 
-        const cookiesString = this.currentSession.bashCookies || 
-                             Object.entries(this.currentSession.cookies)
+        const cookiesString = Object.entries(this.currentSession.cookies)
                                 .map(([key, value]) => `${key}=${value}`)
                                 .join('; ');
 
@@ -770,49 +752,33 @@ class ShopeeBot {
                     ).join('');
                 break;
             case 'bash':
-                formattedCookies = this.currentSession.bashCookies || 
-                    Object.entries(this.currentSession.cookies)
-                        .map(([key, value]) => `${key}=${value};`)
-                        .join(' ');
+                formattedCookies = Object.entries(this.currentSession.cookies)
+                    .map(([key, value]) => `${key}=${value};`)
+                    .join(' ');
                 break;
         }
 
         this.updateCookiesDisplay(formattedCookies);
     }
 
-    async clearSession() {
+    clearSession() {
         if (confirm('Apakah Anda yakin ingin mengakhiri session ini?')) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/session`, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sessionId: this.sessionId })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    this.currentSession = null;
-                    this.sessionStart = Date.now();
-                    this.updateUI();
-                    
-                    // Reset all displays
-                    document.getElementById('account-result').innerHTML = `
-                        <div class="no-result">
-                            <i class="fas fa-user-clock"></i>
-                            <p>Masukkan cookies dan klik "Cek Status Akun"</p>
-                        </div>
-                    `;
-                    
-                    document.getElementById('cookie-input').value = '';
-                    
-                    this.showToast('Session berhasil direset', 'success');
-                    this.addActivity('Session direset');
-                }
-            } catch (error) {
-                console.error('Clear session error:', error);
-                this.showToast('Gagal menghapus session', 'error');
-            }
+            this.currentSession = null;
+            this.sessionStart = Date.now();
+            this.updateUI();
+            
+            // Reset all displays
+            document.getElementById('account-result').innerHTML = `
+                <div class="no-result">
+                    <i class="fas fa-user-clock"></i>
+                    <p>Masukkan cookies dan klik "Cek Status Akun"</p>
+                </div>
+            `;
+            
+            document.getElementById('cookie-input').value = '';
+            
+            this.showToast('Session berhasil direset', 'success');
+            this.addActivity('Session direset');
         }
     }
 
@@ -853,227 +819,3 @@ class ShopeeBot {
 document.addEventListener('DOMContentLoaded', () => {
     window.shopeeBot = new ShopeeBot();
 });
-
-// Add custom styles (sama seperti sebelumnya)
-const style = document.createElement('style');
-style.textContent = `
-    .account-details {
-        display: flex;
-        flex-direction: column;
-        gap: 25px;
-    }
-    
-    .detail-group {
-        background: #f8f9fa;
-        padding: 20px;
-        border-radius: 15px;
-        border-left: 4px solid var(--primary);
-    }
-    
-    .detail-group h4 {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        color: var(--dark);
-        margin-bottom: 15px;
-        font-size: 1.1rem;
-    }
-    
-    .detail-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 0;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-    }
-    
-    .detail-item:last-child {
-        border-bottom: none;
-    }
-    
-    .detail-item span {
-        font-weight: 500;
-        color: var(--dark-gray);
-        min-width: 100px;
-    }
-    
-    .detail-item code {
-        background: white;
-        padding: 5px 12px;
-        border-radius: 8px;
-        font-family: 'Roboto Mono', monospace;
-        font-size: 0.9rem;
-        color: var(--primary);
-        word-break: break-all;
-        max-width: 300px;
-    }
-    
-    .error-result {
-        text-align: center;
-        padding: 40px 20px;
-        background: #f8f9fa;
-        border-radius: 15px;
-        border-left: 4px solid var(--danger);
-    }
-    
-    .error-result i {
-        font-size: 4rem;
-        color: var(--danger);
-        margin-bottom: 20px;
-        opacity: 0.5;
-    }
-    
-    .error-result h4 {
-        color: var(--danger);
-        margin-bottom: 10px;
-        font-size: 1.2rem;
-    }
-    
-    .error-tip {
-        color: var(--gray);
-        font-size: 0.9rem;
-        margin-top: 15px;
-        font-style: italic;
-    }
-    
-    .error-tips {
-        text-align: left;
-        margin-top: 20px;
-        padding: 15px;
-        background: rgba(231, 76, 60, 0.1);
-        border-radius: 10px;
-        border-left: 3px solid var(--warning);
-    }
-    
-    .error-tips p {
-        margin-bottom: 10px;
-        font-weight: 600;
-        color: var(--warning);
-    }
-    
-    .error-tips ul {
-        margin-left: 20px;
-        color: var(--dark-gray);
-    }
-    
-    .error-tips li {
-        margin-bottom: 5px;
-        font-size: 0.9rem;
-    }
-    
-    .modal-account-info {
-        display: flex;
-        flex-direction: column;
-        gap: 25px;
-    }
-    
-    .modal-section {
-        padding-bottom: 25px;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    }
-    
-    .modal-section:last-child {
-        border-bottom: none;
-        padding-bottom: 0;
-    }
-    
-    .modal-section h4 {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        color: var(--dark);
-        margin-bottom: 20px;
-        font-size: 1.1rem;
-    }
-    
-    .info-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 15px;
-    }
-    
-    .info-item {
-        background: #f8f9fa;
-        padding: 15px;
-        border-radius: 10px;
-    }
-    
-    .info-item label {
-        display: block;
-        font-size: 0.8rem;
-        color: var(--gray);
-        margin-bottom: 5px;
-        font-weight: 500;
-    }
-    
-    .info-item p {
-        color: var(--dark);
-        font-weight: 600;
-        font-size: 1rem;
-        word-break: break-all;
-    }
-    
-    .status-info {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-    }
-    
-    .status-item {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        padding: 15px;
-        background: #f8f9fa;
-        border-radius: 12px;
-    }
-    
-    .status-item.success {
-        background: rgba(46, 204, 113, 0.1);
-        border-left: 3px solid var(--success);
-    }
-    
-    .status-item i {
-        font-size: 1.5rem;
-        width: 40px;
-        height: 40px;
-        background: white;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .status-item.success i {
-        color: var(--success);
-    }
-    
-    .status-item h5 {
-        color: var(--dark);
-        margin-bottom: 3px;
-        font-size: 1rem;
-    }
-    
-    .status-item p {
-        color: var(--dark-gray);
-        font-size: 0.9rem;
-    }
-    
-    /* Loading state for check account */
-    .checking-account {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 40px 20px;
-    }
-    
-    .checking-account .spinner {
-        width: 40px;
-        height: 40px;
-        border: 3px solid rgba(255, 107, 53, 0.3);
-        border-top-color: var(--primary);
-        margin-bottom: 20px;
-    }
-`;
-document.head.appendChild(style);
