@@ -1,518 +1,64 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shopee Login Bot</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.12.0/toastify.min.css">
+    <title>Shopee Bot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #FF6B35;
+            margin-bottom: 20px;
+        }
+        .btn {
+            background: #FF6B35;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        .btn:hover {
+            background: #E55A2B;
+        }
+    </style>
 </head>
 <body>
-    <!-- Loading Screen -->
-    <div id="loading" class="loading-screen">
-        <div class="loader">
-            <div class="spinner"></div>
-            <p>Memulai Shopee Bot...</p>
-        </div>
+    <div class="container">
+        <h1>🚀 Shopee Bot Ready!</h1>
+        <p>Deploy successful to Vercel</p>
+        <button class="btn" onclick="testAPI()">Test API</button>
+        <div id="result"></div>
     </div>
-
-    <!-- Sidebar Navigation -->
-    <nav class="sidebar">
-        <div class="logo">
-            <i class="fas fa-shopping-bag"></i>
-            <span>Shopee Bot</span>
-        </div>
-        <ul class="nav-menu">
-            <li class="nav-item active" data-page="home">
-                <i class="fas fa-home"></i>
-                <span>Dashboard</span>
-            </li>
-            <li class="nav-item" data-page="qr-login">
-                <i class="fas fa-qrcode"></i>
-                <span>QR Login</span>
-            </li>
-            <li class="nav-item" data-page="check-account">
-                <i class="fas fa-user-check"></i>
-                <span>Cek Akun</span>
-            </li>
-            <li class="nav-item" data-page="cookies">
-                <i class="fas fa-cookie-bite"></i>
-                <span>Cookies</span>
-            </li>
-            <li class="nav-item" data-page="help">
-                <i class="fas fa-question-circle"></i>
-                <span>Bantuan</span>
-            </li>
-        </ul>
-        <div class="user-info">
-            <div class="user-avatar">
-                <i class="fas fa-user"></i>
-            </div>
-            <div class="user-details">
-                <span class="user-name">Guest</span>
-                <span class="user-status"><i class="fas fa-circle status-online"></i> Online</span>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Home Page -->
-        <section id="home" class="page active">
-            <header class="page-header">
-                <h1><i class="fas fa-tachometer-alt"></i> Dashboard</h1>
-                <div class="header-actions">
-                    <button id="new-session" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Session Baru
-                    </button>
-                </div>
-            </header>
-
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                        <i class="fas fa-user-shield"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3>Status Login</h3>
-                        <p id="login-status" class="status-badge status-offline">Belum Login</p>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                        <i class="fas fa-qrcode"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3>QR Code</h3>
-                        <p id="qr-status" class="status-badge status-inactive">Tidak Aktif</p>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-                        <i class="fas fa-cookie"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3>Cookies</h3>
-                        <p id="cookies-status" class="status-badge status-offline">Tidak Ada</p>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3>Session</h3>
-                        <p id="session-time">00:00:00</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="quick-actions">
-                <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
-                <div class="actions-grid">
-                    <button class="action-btn" data-action="qr-login">
-                        <i class="fas fa-qrcode"></i>
-                        <span>Login QR</span>
-                    </button>
-                    <button class="action-btn" data-action="check-account">
-                        <i class="fas fa-user-check"></i>
-                        <span>Cek Akun</span>
-                    </button>
-                    <button class="action-btn" data-action="copy-cookies">
-                        <i class="fas fa-copy"></i>
-                        <span>Salin Cookies</span>
-                    </button>
-                    <button class="action-btn" data-action="clear-session">
-                        <i class="fas fa-trash"></i>
-                        <span>Clear Session</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="recent-activity">
-                <h2><i class="fas fa-history"></i> Recent Activity</h2>
-                <div class="activity-list" id="activity-list">
-                    <div class="activity-item">
-                        <i class="fas fa-info-circle"></i>
-                        <p>Selamat datang di Shopee Login Bot! Mulai dengan login QR atau cek akun.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- QR Login Page -->
-        <section id="qr-login" class="page">
-            <header class="page-header">
-                <h1><i class="fas fa-qrcode"></i> QR Code Login</h1>
-                <div class="header-actions">
-                    <button id="refresh-qr" class="btn btn-secondary">
-                        <i class="fas fa-sync-alt"></i> Refresh QR
-                    </button>
-                </div>
-            </header>
-
-            <div class="qr-container">
-                <div class="qr-card">
-                    <div class="qr-header">
-                        <h3><i class="fas fa-mobile-alt"></i> Scan QR Code</h3>
-                        <div class="qr-timer">
-                            <i class="fas fa-clock"></i>
-                            <span id="qr-timer">60</span> detik
-                        </div>
-                    </div>
-                    
-                    <div class="qr-image-container">
-                        <div id="qr-placeholder" class="qr-placeholder">
-                            <i class="fas fa-qrcode"></i>
-                            <p>Klik "Generate QR" untuk mulai</p>
-                        </div>
-                        <img id="qr-image" class="qr-image" style="display: none;">
-                    </div>
-
-                    <div class="qr-instructions">
-                        <h4><i class="fas fa-info-circle"></i> Petunjuk:</h4>
-                        <ol>
-                            <li>Buka aplikasi Shopee di smartphone</li>
-                            <li>Tap ikon "Saya" di kanan bawah</li>
-                            <li>Pilih "Scan QR Code"</li>
-                            <li>Arahkan kamera ke QR di atas</li>
-                            <li>Tap "Login" di aplikasi Shopee</li>
-                        </ol>
-                    </div>
-
-                    <div class="qr-actions">
-                        <button id="generate-qr" class="btn btn-primary btn-large">
-                            <i class="fas fa-qrcode"></i> Generate QR Code
-                        </button>
-                        <button id="stop-qr" class="btn btn-danger btn-large" style="display: none;">
-                            <i class="fas fa-stop"></i> Stop Scanning
-                        </button>
-                    </div>
-
-                    <div class="qr-status-container">
-                        <div class="status-indicator status-waiting">
-                            <div class="status-dot"></div>
-                            <span>Menunggu Scan...</span>
-                        </div>
-                        <div id="qr-progress" class="progress-bar">
-                            <div class="progress-fill"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="login-steps">
-                    <h3><i class="fas fa-list-ol"></i> Langkah-langkah</h3>
-                    <div class="steps">
-                        <div class="step active">
-                            <div class="step-number">1</div>
-                            <div class="step-content">
-                                <h4>Generate QR</h4>
-                                <p>Klik tombol untuk membuat QR Code baru</p>
-                            </div>
-                        </div>
-                        <div class="step">
-                            <div class="step-number">2</div>
-                            <div class="step-content">
-                                <h4>Scan QR</h4>
-                                <p>Scan QR dengan aplikasi Shopee</p>
-                            </div>
-                        </div>
-                        <div class="step">
-                            <div class="step-number">3</div>
-                            <div class="step-content">
-                                <h4>Konfirmasi</h4>
-                                <p>Klik "Login" di aplikasi Shopee</p>
-                            </div>
-                        </div>
-                        <div class="step">
-                            <div class="step-number">4</div>
-                            <div class="step-content">
-                                <h4>Dapatkan Cookies</h4>
-                                <p>Cookies akan otomatis didapatkan</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Check Account Page -->
-        <section id="check-account" class="page">
-            <header class="page-header">
-                <h1><i class="fas fa-user-check"></i> Cek Status Akun</h1>
-            </header>
-
-            <div class="check-account-container">
-                <div class="input-section">
-                    <div class="input-header">
-                        <h3><i class="fas fa-cookie-bite"></i> Input Cookies Manual</h3>
-                        <button id="paste-cookies" class="btn btn-small">
-                            <i class="fas fa-paste"></i> Paste
-                        </button>
-                    </div>
-                    
-                    <div class="cookie-input-container">
-                        <textarea id="cookie-input" class="cookie-input" 
-                                  placeholder="Masukkan cookies Shopee Anda di sini...
-Contoh format:
-SPC_T_ID=abc123...;
-SPC_EC=def456...;
-SPC_F=ghi789...;
-..."></textarea>
-                        <div class="input-info">
-                            <i class="fas fa-info-circle"></i>
-                            <span>Cookies bisa didapat dari browser DevTools (F12)</span>
-                        </div>
-                    </div>
-
-                    <button id="check-account-btn" class="btn btn-primary btn-large">
-                        <i class="fas fa-search"></i> Cek Status Akun
-                    </button>
-                </div>
-
-                <div class="result-section">
-                    <div class="result-header">
-                        <h3><i class="fas fa-chart-line"></i> Hasil Pengecekan</h3>
-                        <div class="result-status">
-                            <span id="account-status" class="status-badge status-offline">Belum Dicek</span>
-                        </div>
-                    </div>
-
-                    <div id="account-result" class="account-result">
-                        <div class="no-result">
-                            <i class="fas fa-user-clock"></i>
-                            <p>Masukkan cookies dan klik "Cek Status Akun"</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="cookie-info">
-                <h3><i class="fas fa-lightbulb"></i> Tips Mendapatkan Cookies</h3>
-                <div class="info-grid">
-                    <div class="info-card">
-                        <div class="info-icon">
-                            <i class="fab fa-chrome"></i>
-                        </div>
-                        <h4>Dari Chrome</h4>
-                        <p>F12 → Application → Cookies → shopee.co.id</p>
-                    </div>
-                    <div class="info-card">
-                        <div class="info-icon">
-                            <i class="fas fa-mobile-alt"></i>
-                        </div>
-                        <h4>Dari Mobile</h4>
-                        <p>Gunakan browser dengan mode desktop</p>
-                    </div>
-                    <div class="info-card">
-                        <div class="info-icon">
-                            <i class="fas fa-key"></i>
-                        </div>
-                        <h4>Login QR</h4>
-                        <p>Gunakan fitur QR Login di halaman sebelumnya</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Cookies Page -->
-        <section id="cookies" class="page">
-            <header class="page-header">
-                <h1><i class="fas fa-cookie-bite"></i> Cookies Manager</h1>
-                <div class="header-actions">
-                    <button id="export-cookies" class="btn btn-success">
-                        <i class="fas fa-download"></i> Export
-                    </button>
-                </div>
-            </header>
-
-            <div class="cookies-container">
-                <div class="cookies-display">
-                    <div class="cookies-header">
-                        <h3><i class="fas fa-code"></i> Cookies Format</h3>
-                        <div class="format-buttons">
-                            <button class="format-btn active" data-format="colored">Warna</button>
-                            <button class="format-btn" data-format="raw">Raw</button>
-                            <button class="format-btn" data-format="bash">Bash</button>
-                        </div>
-                    </div>
-
-                    <div class="cookies-content">
-                        <div id="cookies-output" class="cookies-output">
-                            <div class="no-cookies">
-                                <i class="fas fa-cookie"></i>
-                                <p>Belum ada cookies yang tersimpan</p>
-                                <p class="subtext">Login QR atau cek akun untuk mendapatkan cookies</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="cookies-actions">
-                        <button id="copy-cookies" class="btn btn-primary">
-                            <i class="fas fa-copy"></i> Salin Cookies
-                        </button>
-                        <button id="clear-cookies" class="btn btn-danger">
-                            <i class="fas fa-trash"></i> Hapus
-                        </button>
-                    </div>
-                </div>
-
-                <div class="cookies-info">
-                    <h3><i class="fas fa-info-circle"></i> Informasi Cookies</h3>
-                    <div class="info-content">
-                        <div class="cookie-legend">
-                            <h4>Legenda Warna:</h4>
-                            <div class="legend-item">
-                                <span class="color-dot spc-color"></span>
-                                <span>SPC Cookies (Warna Orange)</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="color-dot other-color"></span>
-                                <span>Cookie Lain</span>
-                            </div>
-                        </div>
-                        
-                        <div class="cookie-list">
-                            <h4>Cookie Penting:</h4>
-                            <ul>
-                                <li><code>SPC_T_ID</code>: Token utama</li>
-                                <li><code>SPC_EC</code>: Session encryption</li>
-                                <li><code>SPC_F</code>: Fingerprint</li>
-                                <li><code>SPC_U</code>: User ID</li>
-                                <li><code>REC_T_ID</code>: Tracking ID</li>
-                            </ul>
-                        </div>
-
-                        <div class="security-warning">
-                            <h4><i class="fas fa-shield-alt"></i> Keamanan:</h4>
-                            <p>Jangan bagikan cookies Anda ke siapapun!</p>
-                            <p>Cookies berisi informasi login sensitif.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Help Page -->
-        <section id="help" class="page">
-            <header class="page-header">
-                <h1><i class="fas fa-question-circle"></i> Pusat Bantuan</h1>
-            </header>
-
-            <div class="help-container">
-                <div class="faq-section">
-                    <h2><i class="fas fa-comments"></i> FAQ</h2>
-                    
-                    <div class="faq-item">
-                        <div class="faq-question">
-                            <h3>Apa itu Shopee Login Bot?</h3>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div class="faq-answer">
-                            <p>Shopee Login Bot adalah tool untuk mendapatkan cookies Shopee melalui QR Code login atau mengecek status akun dari cookies yang dimiliki.</p>
-                        </div>
-                    </div>
-
-                    <div class="faq-item">
-                        <div class="faq-question">
-                            <h3>Bagaimana cara mendapatkan cookies?</h3>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div class="faq-answer">
-                            <p>Ada 2 cara: 1) Gunakan QR Login, 2) Input manual cookies dari browser. QR Login lebih mudah dan aman.</p>
-                        </div>
-                    </div>
-
-                    <div class="faq-item">
-                        <div class="faq-question">
-                            <h3>Kenapa SPC cookies berwarna orange?</h3>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div class="faq-answer">
-                            <p>SPC cookies adalah cookies utama Shopee yang penting untuk autentikasi. Warna orange membantu mengidentifikasinya dengan mudah.</p>
-                        </div>
-                    </div>
-
-                    <div class="faq-item">
-                        <div class="faq-question">
-                            <h3>Berapa lama cookies berlaku?</h3>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div class="faq-answer">
-                            <p>Cookies Shopee biasanya berlaku beberapa hari hingga berminggu-minggu, tergantung aktivitas dan kebijakan Shopee.</p>
-                        </div>
-                    </div>
-
-                    <div class="faq-item">
-                        <div class="faq-question">
-                            <h3>Apakah aman menggunakan tool ini?</h3>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div class="faq-answer">
-                            <p>Tool ini berjalan di browser Anda sendiri. Cookies tidak dikirim ke server pihak ketiga. Namun, selalu jaga kerahasiaan cookies Anda.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="guide-section">
-                    <h2><i class="fas fa-book"></i> Panduan Lengkap</h2>
-                    
-                    <div class="guide-step">
-                        <div class="step-icon">1</div>
-                        <div class="step-content">
-                            <h3>Login dengan QR Code</h3>
-                            <p>Pergi ke halaman QR Login, generate QR, scan dengan aplikasi Shopee, dan dapatkan cookies secara otomatis.</p>
-                        </div>
-                    </div>
-
-                    <div class="guide-step">
-                        <div class="step-icon">2</div>
-                        <div class="step-content">
-                            <h3>Cek Status Akun</h3>
-                            <p>Jika sudah memiliki cookies, paste di halaman Cek Akun untuk melihat informasi akun dan validasi cookies.</p>
-                        </div>
-                    </div>
-
-                    <div class="guide-step">
-                        <div class="step-icon">3</div>
-                        <div class="step-content">
-                            <h3>Kelola Cookies</h3>
-                            <p>Lihat dan salin cookies di halaman Cookies. Cookies SPC ditampilkan dengan warna orange untuk memudahkan identifikasi.</p>
-                        </div>
-                    </div>
-
-                    <div class="guide-step">
-                        <div class="step-icon">4</div>
-                        <div class="step-content">
-                            <h3>Keamanan</h3>
-                            <p>Jangan pernah membagikan cookies Anda. Cookies adalah kunci akses ke akun Shopee Anda.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- Modals -->
-    <div id="account-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-user-circle"></i> Detail Akun</h3>
-                <button class="close-modal">&times;</button>
-            </div>
-            <div class="modal-body" id="modal-account-details">
-                <!-- Account details will be loaded here -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.12.0/toastify.min.js"></script>
-    <script src="script.js"></script>
+    
+    <script>
+        async function testAPI() {
+            const result = document.getElementById('result');
+            result.innerHTML = '<p>Testing API...</p>';
+            
+            try {
+                const response = await fetch('/api/check');
+                const data = await response.json();
+                result.innerHTML = `<p>✅ API Response: ${data.status}</p>`;
+            } catch (error) {
+                result.innerHTML = `<p>❌ Error: ${error.message}</p>`;
+            }
+        }
+    </script>
 </body>
 </html>
