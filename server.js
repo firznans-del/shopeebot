@@ -1,19 +1,11 @@
-require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const http = require('http');
-const socketIo = require('socket.io');
 const axios = require('axios');
 const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
-});
 
 // Middleware
 app.use(cors());
@@ -86,7 +78,6 @@ function formatCookiesForWeb(cookies) {
   cookieOrder.forEach(key => {
     if (cookies[key]) {
       if (key.startsWith('SPC_')) {
-        // Tambahkan class untuk styling
         result += `<span class="cookie-spc">${key}=${cookies[key]}</span>; `;
       } else {
         result += `<span class="cookie-other">${key}=${cookies[key]}</span>; `;
@@ -124,13 +115,12 @@ app.post('/api/generate-qr', async (req, res) => {
 
     const response = await axios.get(
       'https://shopee.co.id/api/v2/authentication/gen_qrcode',
-      { headers, timeout: 15000, withCredentials: true }
+      { headers, timeout: 15000 }
     );
 
     if (response.data && response.data.data) {
       const qrcodeData = response.data.data;
       
-      // Simpan session
       qrSessions.set(sessionId, {
         qrcode_id: qrcodeData.qrcode_id,
         timestamp: Date.now()
@@ -168,7 +158,7 @@ app.post('/api/check-qr', async (req, res) => {
 
     const response = await axios.get(
       `https://shopee.co.id/api/v2/authentication/qrcode_status?qrcode_id=${encodeURIComponent(qrcodeId)}`,
-      { headers, timeout: 10000, withCredentials: true }
+      { headers, timeout: 10000 }
     );
 
     if (response.data && response.data.data) {
@@ -226,42 +216,35 @@ app.post('/api/login-qr', async (req, res) => {
       },
       { 
         headers, 
-        timeout: 15000,
-        withCredentials: true 
+        timeout: 15000
       }
     );
 
     if (response.headers['set-cookie']) {
       let cookies = parseSetCookies(response.headers['set-cookie']);
       
-      // Generate REC_T_ID jika tidak ada
       if (!cookies['REC_T_ID']) {
         cookies['REC_T_ID'] = generateRecTId();
       }
       
-      // Generate SPC_CLIENTID dari SPC_F
       if (!cookies['SPC_CLIENTID'] && cookies['SPC_F']) {
         cookies['SPC_CLIENTID'] = Buffer.from(cookies['SPC_F']).toString('base64');
       }
       
-      // Pastikan SPC_R_T_ID sama dengan SPC_T_ID
       if (!cookies['SPC_R_T_ID'] && cookies['SPC_T_ID']) {
         cookies['SPC_R_T_ID'] = cookies['SPC_T_ID'];
       }
       
-      // Pastikan SPC_R_T_IV sama dengan SPC_T_IV
       if (!cookies['SPC_R_T_IV'] && cookies['SPC_T_IV']) {
         cookies['SPC_R_T_IV'] = cookies['SPC_T_IV'];
       }
       
-      // Get userid dari response jika SPC_U tidak ada
       if (!cookies['SPC_U'] && response.data && response.data.data && response.data.data.userid) {
         cookies['SPC_U'] = response.data.data.userid.toString();
       }
       
       const coloredCookies = formatCookiesForWeb(cookies);
       
-      // Simpan cookies untuk session
       userSessions.set(sessionId, {
         cookies,
         coloredCookies,
@@ -303,7 +286,6 @@ app.post('/api/check-account', async (req, res) => {
       'X-Requested-With': 'XMLHttpRequest'
     };
 
-    // Cek profil
     let profileData = null;
     try {
       const profileResponse = await axios.get(
@@ -318,7 +300,6 @@ app.post('/api/check-account', async (req, res) => {
       console.log('Profile check error:', profileError.message);
     }
 
-    // Cek info akun
     let accountData = { phone: '-', email: '-', name: '-' };
     try {
       const accountResponse = await axios.get(
@@ -340,7 +321,6 @@ app.post('/api/check-account', async (req, res) => {
 
     const coloredCookies = formatCookiesForWeb(cookies);
     
-    // Update session
     userSessions.set(sessionId, {
       cookies,
       coloredCookies,
@@ -393,7 +373,6 @@ app.post('/api/parse-cookies', (req, res) => {
       }
     });
     
-    // Validate required cookies
     const requiredCookies = ['SPC_T_ID', 'SPC_EC'];
     const missingCookies = requiredCookies.filter(cookie => !cookies[cookie]);
     
@@ -430,11 +409,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Catch all route for SPA
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
 // Cleanup old sessions setiap 5 menit
 setInterval(() => {
   const now = Date.now();
@@ -447,26 +421,16 @@ setInterval(() => {
   }
   
   for (const [sessionId, qrData] of qrSessions.entries()) {
-    if (qrData.timestamp && now - qrData.timestamp > 600000) { // 10 menit
+    if (qrData.timestamp && now - qrData.timestamp > 600000) {
       qrSessions.delete(sessionId);
     }
   }
 }, 300000);
 
-// Export untuk Vercel
-if (require.main === module) {
-  const PORT = process.env.PORT || 3000;
-  server.listen(PORT, () => {
-    console.log('=========================================');
-    console.log('🚀 SHOPEE WEB BOT BERJALAN');
-    console.log('=========================================');
-    console.log(`🌐 Web Interface: http://localhost:${PORT}`);
-    console.log(`🔧 API Health: http://localhost:${PORT}/api/health`);
-    console.log('📱 Responsive Web Design');
-    console.log('🎨 Modern UI dengan warna orange untuk SPC cookies');
-    console.log('🔒 Session Management');
-    console.log('=========================================');
-  });
-}
+// Catch all route for SPA
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
+// Export untuk Vercel
 module.exports = app;
